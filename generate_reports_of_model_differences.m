@@ -82,11 +82,6 @@ end
 % visdiff関数を使用して2つのモデルファイルを比較し、差分を表示
 comparisonReport = visdiff(oldModelPath, newModelPath);
 
-% モデルを読み込む
-load_system(oldModelPath);
-load_system(newModelPath);
-diffResult = Simulink.BlockDiagram.compare('old_model', 'new_model');
-
 % 比較レポートをHTML形式で保存するためのディレクトリを指定します
 reportDir = 'path/to/save/report';
 if ~exist(reportDir, 'dir')
@@ -100,7 +95,6 @@ reportFileName = fullfile(reportDir, 'model_comparison_report.html');
 % slxmlcomp.export(comparisonReport, 'html', reportFileName);
 filter(comparisonReport, 'unfiltered');
 publish(comparisonReport,'html');
-diffResult.export(reportFileName, 'html');
 
 % % 一時ブランチを削除し、元のブランチに戻ります
 % system(sprintf('git -C %s checkout -', gitRepoPath));
