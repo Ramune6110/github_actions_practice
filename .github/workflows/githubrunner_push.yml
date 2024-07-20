@@ -27,7 +27,7 @@ jobs:
       - name: Compare Models to Ancestors
         uses: matlab-actions/run-command@v2
         with:
-          command: lastpush="${{ github.event.before }}"; diffGitHub_push(lastpush)
+          command: addpath(genpath(pwd));comparisons.ExternalSCMLink.setupGitConfig(); lastpush="${{ github.event.before }}"; diffGitHub_push(lastpush)
 
       - name: Upload Comparison Reports
         uses: actions/upload-artifact@v3
