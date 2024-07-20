@@ -34,6 +34,13 @@ if status ~= 0
 end
 oldCommit = strtrim(oldCommit);
 
+% 現在のブランチ名を取得
+[status, currentBranch] = system(sprintf('git -C %s rev-parse --abbrev-ref HEAD', gitRepoPath));
+if status ~= 0
+    error('Failed to get the current branch name');
+end
+currentBranch = strtrim(currentBranch);
+
 % 変更後のコミットハッシュを一時コミットで取得します
 tempBranchName = 'temp_comparison_branch';
 system(sprintf('git -C %s checkout -b %s', gitRepoPath, tempBranchName));
@@ -84,8 +91,14 @@ reportFileName = fullfile(reportDir, 'model_comparison_report.html');
 filter(comparisonReport, 'unfiltered');
 publish(comparisonReport,'html');
 
-% 一時ブランチを削除し、元のブランチに戻ります
-system(sprintf('git -C %s checkout -', gitRepoPath));
+% % 一時ブランチを削除し、元のブランチに戻ります
+% system(sprintf('git -C %s checkout -', gitRepoPath));
+% system(sprintf('git -C %s branch -D %s', gitRepoPath, tempBranchName));
+
+% 元のブランチに戻ります
+system(sprintf('git -C %s checkout %s', gitRepoPath, currentBranch));
+
+% 一時ブランチを削除します
 system(sprintf('git -C %s branch -D %s', gitRepoPath, tempBranchName));
 
 % 一時ディレクトリを削除します
