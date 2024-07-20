@@ -41,6 +41,11 @@ if status ~= 0
 end
 currentBranch = strtrim(currentBranch);
 
+% 起点となるブランチが 'main' または 'develop' であることを確認
+if ~ismember(currentBranch, {'main', 'develop'})
+    error('This script can only be run from the main or develop branch.');
+end
+
 % 変更後のコミットハッシュを一時コミットで取得します
 tempBranchName = 'temp_comparison_branch';
 system(sprintf('git -C %s checkout -b %s', gitRepoPath, tempBranchName));
