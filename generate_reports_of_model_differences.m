@@ -1,5 +1,5 @@
 % Simulinkモデルの相対パス（Gitリポジトリ内のパス）を指定します
-modelRelativePath = 'sample.slx';
+modelRelativePath = 'sample2.slx';
 
 % Gitリポジトリのパスを指定します
 rootFolder = pwd;
