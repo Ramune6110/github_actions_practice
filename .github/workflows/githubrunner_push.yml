@@ -25,7 +25,9 @@ jobs:
          echo "DISPLAY=:99" >> $GITHUB_ENV
 
       - name: Compare Models to Ancestors
-        run: xvfb-run -a matlab -batch "branch ='${{ github.head_ref }}'; diffGitHub_pullrequest(branch)"
+        uses: matlab-actions/run-command@v2
+        with:
+          command: lastpush="${{ github.event.before }}"; diffGitHub_push(lastpush)
 
       - name: Upload Comparison Reports
         uses: actions/upload-artifact@v3
