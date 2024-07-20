@@ -21,14 +21,16 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y xvfb
-          Xvfb :99 &
+          Xvfb :99 -screen 0 1024x768x24 &
+          sleep 3  # Ensure Xvfb has enough time to start
           export DISPLAY=:99
           echo "DISPLAY=:99" >> $GITHUB_ENV
+          xdpyinfo -display :99  # Confirm Xvfb is running
 
       - name: Compare Models to Ancestors
-        run: |
-          export DISPLAY=:99
-          matlab -batch "branch ='${{ github.head_ref }}'; diffGitHub_pullrequest(branch)"
+        uses: matlab-actions/run-command@v2
+        with:
+          command: lastpush="${{ github.event.before }}"; diffGitHub_push(lastpush)
 
       - name: Upload Comparison Reports
         uses: actions/upload-artifact@v3
