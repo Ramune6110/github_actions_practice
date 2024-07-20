@@ -101,10 +101,21 @@ function diffGitHub_push(lastpush)
     
         % Compare models and publish results in a printable report
         % Specify the format using 'pdf', 'html', or 'docx'
-        comp = visdiff(ancestor, fileName);
-        filter(comp, 'unfiltered');
-        report = publish(comp, 'html');
-        
+%         comp = visdiff(ancestor, fileName);
+%         filter(comp, 'unfiltered');
+%         report = publish(comp, 'html');
+        % Compare models and publish results in a printable report
+        % Specify the format using 'pdf', 'html', or 'docx'
+        % Note: visdiff is a GUI-based function and may not work in a headless environment
+        % Consider using another method to compare models if running in a CI/CD pipeline
+        try
+            comp = visdiff(ancestor, fileName);
+            filter(comp, 'unfiltered');
+            report = publish(comp, 'html');
+        catch
+            disp(['Unable to compare ' ancestor ' and ' fileName ' without opening the Comparison Tool.']);
+            report = '';
+        end
     end
     
     function ancestor = getAncestor(tempdir, fileName, lastpush)
