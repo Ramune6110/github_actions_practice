@@ -96,15 +96,9 @@ try
     % HTMLファイルとして比較レポートを保存するためにslxmlcomp.exportを使用します
     filter(comparisonReport, 'unfiltered');
     publish(comparisonReport, 'html'); % OutputDirを指定
-
+    
     % 元のブランチに戻ります
     system(sprintf('git -C %s checkout %s', gitRepoPath, currentBranch));
-    
-    % 一時ブランチを削除します
-    system(sprintf('git -C %s branch -D %s', gitRepoPath, tempBranchName));
-
-    % 完了メッセージ
-    disp(['レポートが保存されました: ', reportFileName]);
     
     % レポートファイルが更新されていれば、git addとgit commitを実行
     [status, changedFiles] = system(sprintf('git -C %s status --porcelain', gitRepoPath));
@@ -112,6 +106,12 @@ try
         system(sprintf('git -C %s add %s', gitRepoPath, reportFileName));
         system(sprintf('git -C %s commit -m "Update: Model comparison report updated."', gitRepoPath));
     end
+    
+    % 一時ブランチを削除します
+    system(sprintf('git -C %s branch -D %s', gitRepoPath, tempBranchName));
+
+    % 完了メッセージ
+    disp(['レポートが保存されました: ', reportFileName]);
 
 catch ME
     % エラー発生時に元のブランチに戻る
