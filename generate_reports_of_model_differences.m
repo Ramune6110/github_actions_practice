@@ -105,6 +105,13 @@ try
 
     % 完了メッセージ
     disp(['レポートが保存されました: ', reportFileName]);
+    
+    % レポートファイルが更新されていれば、git addとgit commitを実行
+    [status, changedFiles] = system(sprintf('git -C %s status --porcelain', gitRepoPath));
+    if status == 0 && contains(changedFiles, 'model_comparison_report.html')
+        system(sprintf('git -C %s add %s', gitRepoPath, reportFileName));
+        system(sprintf('git -C %s commit -m "Update: Model comparison report updated."', gitRepoPath));
+    end
 
 catch ME
     % エラー発生時に元のブランチに戻る
