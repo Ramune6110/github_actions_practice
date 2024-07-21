@@ -46,65 +46,73 @@ if ~ismember(currentBranch, {'main', 'develop'})
     error('This script can only be run from the main or develop branch.');
 end
 
-% 変更後のコミットハッシュを取得するために、ステージされた変更を一時ブランチに適用
-tempBranchName = 'temp_comparison_branch';
-system(sprintf('git -C %s checkout -b %s', gitRepoPath, tempBranchName));
-system(sprintf('git -C %s add %s', gitRepoPath, modelRelativePath));  % ステージされた変更を追加
-system(sprintf('git -C %s commit -m "Temporary commit for comparison"', gitRepoPath));
-[status, newCommit] = system(sprintf('git -C %s rev-parse HEAD', gitRepoPath));
-if status ~= 0
-    error('Failed to get the new commit hash');
-end
-newCommit = strtrim(newCommit);
-
-% 古いバージョンのモデルファイルをチェックアウト
-oldModelPath = fullfile(tempDir, 'old_model.slx');
-gitCheckoutCmdOld = sprintf('git -C %s show %s:%s > %s', gitRepoPath, oldCommit, modelRelativePath, oldModelPath);
-system(gitCheckoutCmdOld);
-
-% 新しいバージョンのモデルファイルをチェックアウト
-newModelPath = fullfile(tempDir, 'new_model.slx');
-gitCheckoutCmdNew = sprintf('git -C %s show %s:%s > %s', gitRepoPath, newCommit, modelRelativePath, newModelPath);
-system(gitCheckoutCmdNew);
-
-% 既に開いている同名のモデルを閉じる
 try
-    close_system('old_model', 0); % 変更を保存せずに閉じる
-catch
-    % モデルが開かれていない場合の例外を無視
+    % 変更後のコミットハッシュを取得するために、ステージされた変更を一時ブランチに適用
+    tempBranchName = 'temp_comparison_branch';
+    system(sprintf('git -C %s checkout -b %s', gitRepoPath, tempBranchName));
+    system(sprintf('git -C %s add %s', gitRepoPath, modelRelativePath));  % ステージされた変更を追加
+    system(sprintf('git -C %s commit -m "Temporary commit for comparison"', gitRepoPath));
+    [status, newCommit] = system(sprintf('git -C %s rev-parse HEAD', gitRepoPath));
+    if status ~= 0
+        error('Failed to get the new commit hash');
+    end
+    newCommit = strtrim(newCommit);
+
+    % 古いバージョンのモデルファイルをチェックアウト
+    oldModelPath = fullfile(tempDir, 'old_model.slx');
+    gitCheckoutCmdOld = sprintf('git -C %s show %s:%s > %s', gitRepoPath, oldCommit, modelRelativePath, oldModelPath);
+    system(gitCheckoutCmdOld);
+
+    % 新しいバージョンのモデルファイルをチェックアウト
+    newModelPath = fullfile(tempDir, 'new_model.slx');
+    gitCheckoutCmdNew = sprintf('git -C %s show %s:%s > %s', gitRepoPath, newCommit, modelRelativePath, newModelPath);
+    system(gitCheckoutCmdNew);
+
+    % 既に開いている同名のモデルを閉じる
+    try
+        close_system('old_model', 0); % 変更を保存せずに閉じる
+    catch
+        % モデルが開かれていない場合の例外を無視
+    end
+
+    try
+        close_system('new_model', 0); % 変更を保存せずに閉じる
+    catch
+        % モデルが開かれていない場合の例外を無視
+    end
+
+    % visdiff関数を使用して2つのモデルファイルを比較し、差分を表示
+    comparisonReport = visdiff(oldModelPath, newModelPath);
+
+    % 比較レポートをHTML形式で保存するためのディレクトリを指定します
+    reportDir = 'path/to/save/report';
+    if ~exist(reportDir, 'dir')
+        mkdir(reportDir);
+    end
+
+    % 比較レポートをHTML形式で保存
+    reportFileName = fullfile(reportDir, 'model_comparison_report.html');
+
+    % HTMLファイルとして比較レポートを保存するためにslxmlcomp.exportを使用します
+    filter(comparisonReport, 'unfiltered');
+    publish(comparisonReport, 'html'); % OutputDirを指定
+
+    % 元のブランチに戻ります
+    system(sprintf('git -C %s checkout %s', gitRepoPath, currentBranch));
+    
+    % 一時ブランチを削除します
+    system(sprintf('git -C %s branch -D %s', gitRepoPath, tempBranchName));
+
+    % 完了メッセージ
+    disp(['レポートが保存されました: ', reportFileName]);
+
+catch ME
+    % エラー発生時に元のブランチに戻る
+    system(sprintf('git -C %s checkout %s', gitRepoPath, currentBranch));
+    system(sprintf('git -C %s branch -D %s', gitRepoPath, tempBranchName));
+    rmdir(tempDir, 's'); % 一時ディレクトリを削除
+    rethrow(ME);
 end
-
-try
-    close_system('new_model', 0); % 変更を保存せずに閉じる
-catch
-    % モデルが開かれていない場合の例外を無視
-end
-
-% visdiff関数を使用して2つのモデルファイルを比較し、差分を表示
-comparisonReport = visdiff(oldModelPath, newModelPath);
-
-% 比較レポートをHTML形式で保存するためのディレクトリを指定します
-reportDir = 'path/to/save/report';
-if ~exist(reportDir, 'dir')
-    mkdir(reportDir);
-end
-
-% 比較レポートをHTML形式で保存
-reportFileName = fullfile(reportDir, 'model_comparison_report.html');
-
-% HTMLファイルとして比較レポートを保存するためにslxmlcomp.exportを使用します
-% slxmlcomp.export(comparisonReport, 'html', reportFileName);
-filter(comparisonReport, 'unfiltered');
-publish(comparisonReport, 'html');
-
-% 元のブランチに戻ります
-system(sprintf('git -C %s checkout %s', gitRepoPath, currentBranch));
-
-% 一時ブランチを削除します
-system(sprintf('git -C %s branch -D %s', gitRepoPath, tempBranchName));
 
 % 一時ディレクトリを削除します
 rmdir(tempDir, 's');
-
-% 完了メッセージ
-disp(['レポートが保存されました: ', reportFileName]);
