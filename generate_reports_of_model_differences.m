@@ -85,26 +85,17 @@ try
     comparisonReport = visdiff(oldModelPath, newModelPath);
 
     % 比較レポートをHTML形式で保存するためのディレクトリを指定します
-    reportDir = 'report';
+    reportDir = 'path/to/save/report';
     if ~exist(reportDir, 'dir')
         mkdir(reportDir);
     end
 
     % 比較レポートをHTML形式で保存
-%     reportFileName = fullfile(reportDir, 'model_comparison_report.html');
+    reportFileName = fullfile(reportDir, 'model_comparison_report.html');
 
     % HTMLファイルとして比較レポートを保存するためにslxmlcomp.exportを使用します
-    tempReportFile = fullfile(tempDir, 'model_comparison_report.html');
     filter(comparisonReport, 'unfiltered');
     publish(comparisonReport, 'html'); % OutputDirを指定
-    
-    % 生成されたHTMLレポートを特定
-    generatedFiles = dir(fullfile(tempDir, '*.html'));
-    if ~isempty(generatedFiles)
-        movefile(fullfile(tempDir, generatedFiles(1).name), fullfile(reportDir, 'model_comparison_report.html'));
-    else
-        error('Failed to find the generated HTML report.');
-    end
     
     % 元のブランチに戻ります
     system(sprintf('git -C %s checkout %s', gitRepoPath, currentBranch));
@@ -114,7 +105,7 @@ try
     
     % レポートファイルが更新されていれば、git addとgit commitを実行
     [status, changedFiles] = system(sprintf('git -C %s status --porcelain', gitRepoPath));
-    if status == 0 && contains(changedFiles, 'model_comparison_report.html')
+    if status == 0 && contains(changedFiles, 'old_model_new_model.html')
         system(sprintf('git -C %s add .', gitRepoPath));
         system(sprintf('git -C %s commit -m "[Update] Model comparison report updated."', gitRepoPath));
     end
@@ -123,7 +114,7 @@ try
     system(sprintf('git -C %s branch -D %s', gitRepoPath, tempBranchName));
 
     % 完了メッセージ
-    disp(['レポートが保存されました: ', fullfile(reportDir, 'model_comparison_report.html')]);
+    disp(['レポートが保存されました: ', reportFileName]);
 
 catch ME
     % エラー発生時に元のブランチに戻る
