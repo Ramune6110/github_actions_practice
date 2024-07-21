@@ -98,8 +98,13 @@ try
     filter(comparisonReport, 'unfiltered');
     publish(comparisonReport, 'html'); % OutputDirを指定
     
-    % レポートファイルを指定したディレクトリに移動
-    movefile(tempReportFile, fullfile(reportDir, 'model_comparison_report.html'));
+    % 生成されたHTMLレポートを特定
+    generatedFiles = dir(fullfile(tempDir, '*.html'));
+    if ~isempty(generatedFiles)
+        movefile(fullfile(tempDir, generatedFiles(1).name), fullfile(reportDir, 'model_comparison_report.html'));
+    else
+        error('Failed to find the generated HTML report.');
+    end
     
     % 元のブランチに戻ります
     system(sprintf('git -C %s checkout %s', gitRepoPath, currentBranch));
@@ -118,7 +123,7 @@ try
     system(sprintf('git -C %s branch -D %s', gitRepoPath, tempBranchName));
 
     % 完了メッセージ
-    disp(['レポートが保存されました: ', reportFileName]);
+    disp(['レポートが保存されました: ', fullfile(reportDir, 'model_comparison_report.html')]);
 
 catch ME
     % エラー発生時に元のブランチに戻る
