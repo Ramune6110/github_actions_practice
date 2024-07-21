@@ -49,6 +49,13 @@ end
 % 変更後のコミットハッシュを取得するために、ステージされた変更を一時ブランチに適用
 tempBranchName = 'temp_comparison_branch';
 system(sprintf('git -C %s checkout -b %s', gitRepoPath, tempBranchName));
+system(sprintf('git -C %s add %s', gitRepoPath, modelRelativePath));  % ステージされた変更を追加
+system(sprintf('git -C %s commit -m "Temporary commit for comparison"', gitRepoPath));
+[status, newCommit] = system(sprintf('git -C %s rev-parse HEAD', gitRepoPath));
+if status ~= 0
+    error('Failed to get the new commit hash');
+end
+newCommit = strtrim(newCommit);
 
 % 古いバージョンのモデルファイルをチェックアウト
 oldModelPath = fullfile(tempDir, 'old_model.slx');
@@ -57,7 +64,7 @@ system(gitCheckoutCmdOld);
 
 % 新しいバージョンのモデルファイルをチェックアウト
 newModelPath = fullfile(tempDir, 'new_model.slx');
-gitCheckoutCmdNew = sprintf('git -C %s show %s:%s > %s', gitRepoPath, latestCommit, modelRelativePath, newModelPath);
+gitCheckoutCmdNew = sprintf('git -C %s show %s:%s > %s', gitRepoPath, newCommit, modelRelativePath, newModelPath);
 system(gitCheckoutCmdNew);
 
 % 既に開いている同名のモデルを閉じる
@@ -88,7 +95,7 @@ reportFileName = fullfile(reportDir, 'model_comparison_report.html');
 % HTMLファイルとして比較レポートを保存するためにslxmlcomp.exportを使用します
 % slxmlcomp.export(comparisonReport, 'html', reportFileName);
 filter(comparisonReport, 'unfiltered');
-publish(comparisonReport,'html');
+publish(comparisonReport, 'html', 'OutputDir', reportDir);
 
 % 元のブランチに戻ります
 system(sprintf('git -C %s checkout %s', gitRepoPath, currentBranch));
