@@ -49,7 +49,9 @@ end
 try
     % 変更後のコミットハッシュを取得するために、ステージされた変更を一時ブランチに適用
     tempBranchName = 'temp_comparison_branch';
+    system(sprintf('git -C %s stash', gitRepoPath)); % ステージされた変更をスタッシュ
     system(sprintf('git -C %s checkout -b %s', gitRepoPath, tempBranchName));
+    system(sprintf('git -C %s stash pop', gitRepoPath)); % スタッシュされた変更を適用
     system(sprintf('git -C %s add %s', gitRepoPath, modelRelativePath));  % ステージされた変更を追加
     system(sprintf('git -C %s commit -m "Temporary commit for comparison"', gitRepoPath));
     [status, newCommit] = system(sprintf('git -C %s rev-parse HEAD', gitRepoPath));
@@ -90,18 +92,19 @@ try
         mkdir(reportDir);
     end
 
+    % 比較レポートをHTML形式で保存するためのディレクトリを指定します
+    reportDir = 'path/to/save/report';
+    if ~exist(reportDir, 'dir')
+        mkdir(reportDir);
+    end
+
     % 比較レポートをHTML形式で保存
     reportFileName = fullfile(reportDir, 'model_comparison_report.html');
 
     % HTMLファイルとして比較レポートを保存するためにslxmlcomp.exportを使用します
     filter(comparisonReport, 'unfiltered');
-    %publish(comparisonReport, 'html'); % OutputDirを指定
-%     outputFile = publish(comparisonReport, 'HTML', 'OutputDir', reportDir);
-    outputFile = publish(comparisonReport,format='PDF',Name='myreport',OutputFolder='report');
+    publish(comparisonReport, 'html'); % OutputDirを指定
 
-    % 生成されたHTMLレポートを開く
-    web(outputFile, '-browser');
-    
     % 元のブランチに戻ります
     system(sprintf('git -C %s checkout %s', gitRepoPath, currentBranch));
     
@@ -120,11 +123,12 @@ try
 
     % 完了メッセージ
     disp(['レポートが保存されました: ', reportFileName]);
-
+    
 catch ME
     % エラー発生時に元のブランチに戻る
     system(sprintf('git -C %s checkout %s', gitRepoPath, currentBranch));
     system(sprintf('git -C %s branch -D %s', gitRepoPath, tempBranchName));
+    system(sprintf('git -C %s stash pop', gitRepoPath)); % スタッシュされた変更を復元
     rmdir(tempDir, 's'); % 一時ディレクトリを削除
     rethrow(ME);
 end
