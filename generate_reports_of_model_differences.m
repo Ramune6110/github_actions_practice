@@ -96,8 +96,9 @@ try
     % HTMLファイルとして比較レポートを保存するためにslxmlcomp.exportを使用します
     filter(comparisonReport, 'unfiltered');
     %publish(comparisonReport, 'html'); % OutputDirを指定
-    outputFile = publish(comparisonReport, 'HTML', 'OutputDir', reportDir);
-    
+%     outputFile = publish(comparisonReport, 'HTML', 'OutputDir', reportDir);
+    outputFile = publish(comparisonReport,format='PDF',Name='myreport',OutputFolder='report');
+
     % 生成されたHTMLレポートを開く
     web(outputFile, '-browser');
     
