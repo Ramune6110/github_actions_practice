@@ -100,6 +100,9 @@ try
     % 元のブランチに戻ります
     system(sprintf('git -C %s checkout %s', gitRepoPath, currentBranch));
     
+    % 一時ブランチの変更を元のブランチに反映
+    system(sprintf('git -C %s merge --no-ff %s', gitRepoPath, tempBranchName));
+    
     % レポートファイルが更新されていれば、git addとgit commitを実行
     [status, changedFiles] = system(sprintf('git -C %s status --porcelain', gitRepoPath));
     if status == 0 && contains(changedFiles, 'old_model_new_model.html')
