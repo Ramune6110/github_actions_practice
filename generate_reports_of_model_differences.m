@@ -95,7 +95,7 @@ reportFileName = fullfile(reportDir, 'model_comparison_report.html');
 % HTMLファイルとして比較レポートを保存するためにslxmlcomp.exportを使用します
 % slxmlcomp.export(comparisonReport, 'html', reportFileName);
 filter(comparisonReport, 'unfiltered');
-publish(comparisonReport, 'html', 'OutputDir', reportDir);
+publish(comparisonReport, 'html');
 
 % 元のブランチに戻ります
 system(sprintf('git -C %s checkout %s', gitRepoPath, currentBranch));
