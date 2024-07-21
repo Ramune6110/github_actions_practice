@@ -103,7 +103,8 @@ try
 
     % HTMLファイルとして比較レポートを保存するためにslxmlcomp.exportを使用します
     filter(comparisonReport, 'unfiltered');
-    publish(comparisonReport, 'html'); % OutputDirを指定
+%     publish(comparisonReport, 'html'); % OutputDirを指定
+    publish(comparisonReport, 'html', 'OutputDir', reportDir); % OutputDirを指定
 
     % 元のブランチに戻ります
     system(sprintf('git -C %s checkout %s', gitRepoPath, currentBranch));
