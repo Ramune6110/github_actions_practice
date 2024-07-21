@@ -103,8 +103,8 @@ try
     % レポートファイルが更新されていれば、git addとgit commitを実行
     [status, changedFiles] = system(sprintf('git -C %s status --porcelain', gitRepoPath));
     if status == 0 && contains(changedFiles, 'old_model_new_model.html')
-        system(sprintf('git -C %s add %s', gitRepoPath));
-        system(sprintf('git -C %s commit -m "Update: Model comparison report updated."', gitRepoPath));
+        system(sprintf('git -C %s add .', gitRepoPath));
+        system(sprintf('git -C %s commit -m "[Update] Model comparison report updated."', gitRepoPath));
     end
     
     % 一時ブランチを削除します
